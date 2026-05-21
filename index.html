@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>Aerospace Frontier | Neural Hangar - 4 Models Center Stage</title>
+  <title>Aerospace Frontier | Full-Screen 3D Hangar</title>
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <style>
     * {
@@ -14,7 +14,6 @@
 
     body {
       font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Orbitron', monospace;
-      background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
       height: 100vh;
       width: 100vw;
       overflow: hidden;
@@ -27,31 +26,102 @@
     :root {
       --neon-blue: #00d4ff;
       --neon-purple: #b000ff;
-      --dark-bg: #0a0f1a;
-      --glass-bg: rgba(12, 20, 35, 0.65);
+      --glass-bg: rgba(12, 20, 35, 0.75);
+      --glass-border: rgba(0, 212, 255, 0.35);
     }
 
     .app-container {
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      width: 100%;
-      background: radial-gradient(ellipse at 50% 40%, rgba(0, 40, 60, 0.25), transparent);
       position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
     }
 
-    /* ===== TOP BAR ===== */
+    /* ===== FULL SCREEN 3D VIEWPORT ===== */
+    .fullscreen-viewport {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, #0a1525, #020408);
+      --poster-color: #050a14;
+    }
+
+    /* Slide transition for model viewer */
+    model-viewer.model-transition {
+      animation: modelSlideIn 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+    }
+
+    @keyframes modelSlideIn {
+      0% { 
+        opacity: 0; 
+        transform: scale(0.92) translateX(60px);
+        filter: blur(3px);
+      }
+      100% { 
+        opacity: 1; 
+        transform: scale(1) translateX(0);
+        filter: blur(0);
+      }
+    }
+
+    /* Slide from left variant */
+    model-viewer.model-slide-left {
+      animation: modelSlideFromLeft 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+    }
+
+    @keyframes modelSlideFromLeft {
+      0% { 
+        opacity: 0; 
+        transform: scale(0.92) translateX(-60px);
+        filter: blur(3px);
+      }
+      100% { 
+        opacity: 1; 
+        transform: scale(1) translateX(0);
+        filter: blur(0);
+      }
+    }
+
+    .model-status {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(12px);
+      border-left: 3px solid var(--neon-blue);
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-family: 'Orbitron', monospace;
+      font-weight: 500;
+      color: #bbf0ff;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    /* ===== TOP BAR - OVERLAY ===== */
     .top-bar {
-      background: rgba(8, 14, 26, 0.85);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(8, 14, 26, 0.7);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(0, 212, 255, 0.3);
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       padding: 0.8rem 2rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      position: relative;
-      z-index: 10;
+      z-index: 20;
     }
 
     .brand {
@@ -82,101 +152,65 @@
       color: transparent;
     }
 
-    /* ===== MAIN LAYOUT WITH CENTERED MODELS ===== */
-    .main-layout {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 16px 28px 20px 28px;
-      gap: 20px;
-      overflow: hidden;
-    }
-
-    /* TOP SECTION: 3D VIEWPORT + RIGHT INFO PANEL */
-    .top-section {
-      display: flex;
-      gap: 24px;
-      flex: 2;
-      min-height: 0;
-    }
-
-    /* 3D VIEWPORT - CENTER STAGE */
-    .viewport-area {
-      flex: 2;
-      position: relative;
-      border-radius: 28px;
-      background: #03070f;
-      box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.25), 0 20px 40px -12px black;
-      overflow: hidden;
-      border: 1px solid rgba(0, 212, 255, 0.4);
-    }
-
-    model-viewer {
-      width: 100%;
-      height: 100%;
-      background-color: #050a14;
-      --poster-color: #050a14;
-    }
-
-    model-viewer.model-transition {
-      animation: modelSlideIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-    }
-
-    @keyframes modelSlideIn {
-      0% { opacity: 0; transform: scale(0.94) translateY(12px); filter: blur(2px);}
-      100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0);}
-    }
-
-    .model-status {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(12px);
-      border-left: 3px solid var(--neon-blue);
-      padding: 6px 14px;
-      border-radius: 8px;
+    .version-tag {
       font-size: 0.7rem;
+      color: #8db4d4;
       font-family: 'Orbitron', monospace;
-      font-weight: 500;
-      color: #bbf0ff;
-      z-index: 5;
     }
 
-    /* RIGHT PANEL - TECHNO CARD */
-    .selected-plane-card {
+    /* ===== FLOATING RIGHT PANEL ===== */
+    .floating-panel {
+      position: fixed;
+      top: 90px;
+      right: 24px;
       width: 380px;
+      max-height: calc(100vh - 280px);
       background: var(--glass-bg);
-      backdrop-filter: blur(16px);
-      border-radius: 32px;
-      border: 1px solid rgba(0, 212, 255, 0.35);
-      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.6);
-      display: flex;
-      flex-direction: column;
+      backdrop-filter: blur(20px);
+      border-radius: 28px;
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 212, 255, 0.1);
       overflow-y: auto;
+      z-index: 15;
+      transition: all 0.3s ease;
     }
 
-    .selected-plane-card::-webkit-scrollbar { width: 4px; }
-    .selected-plane-card::-webkit-scrollbar-track { background: #0f1a2c; border-radius: 10px; }
-    .selected-plane-card::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+    .floating-panel::-webkit-scrollbar { width: 4px; }
+    .floating-panel::-webkit-scrollbar-track { background: #0f1a2c; border-radius: 10px; }
+    .floating-panel::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+
+    .panel-header {
+      padding: 12px 20px 0;
+    }
+
+    .panel-header h3 {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      color: var(--neon-blue);
+      text-transform: uppercase;
+    }
+
+    .panel-glow {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+      margin-bottom: 8px;
+    }
 
     .card-preview-img {
       width: 100%;
       aspect-ratio: 16 / 9;
       object-fit: contain;
-      background: #07121f;
-      border-top-left-radius: 32px;
-      border-top-right-radius: 32px;
-      border-bottom: 1px solid rgba(0, 212, 255, 0.4);
+      background: rgba(0, 0, 0, 0.4);
       padding: 12px;
     }
 
     .card-details {
-      padding: 1.2rem 1.5rem 1.8rem;
+      padding: 1rem 1.5rem 1.5rem;
     }
 
     .plane-title {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
       font-weight: 800;
       font-family: 'Orbitron', monospace;
       background: linear-gradient(135deg, #fff, #88ddff);
@@ -188,7 +222,7 @@
       padding-left: 12px;
     }
 
-    /* WIDGETS GRID */
+    /* WIDGETS */
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
@@ -198,7 +232,7 @@
 
     .tech-widget {
       background: rgba(0, 20, 40, 0.6);
-      border-radius: 20px;
+      border-radius: 16px;
       padding: 10px 6px;
       text-align: center;
       border: 1px solid rgba(0, 212, 255, 0.25);
@@ -210,9 +244,9 @@
       box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
     }
 
-    .widget-icon { font-size: 1.4rem; margin-bottom: 4px; }
-    .widget-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #8db4d4; font-family: 'Orbitron', monospace; }
-    .widget-value { font-size: 1.1rem; font-weight: 700; color: #c4edff; font-family: monospace; }
+    .widget-icon { font-size: 1.3rem; margin-bottom: 4px; }
+    .widget-label { font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #8db4d4; }
+    .widget-value { font-size: 1rem; font-weight: 700; color: #c4edff; }
 
     .spec-grid-tech {
       display: grid;
@@ -228,8 +262,8 @@
       border-left: 2px solid var(--neon-blue);
     }
 
-    .spec-label-tech { font-size: 0.6rem; text-transform: uppercase; font-weight: 600; color: #7e9ec2; }
-    .spec-value-tech { font-size: 0.85rem; font-weight: 600; color: #eef5ff; }
+    .spec-label-tech { font-size: 0.55rem; text-transform: uppercase; font-weight: 600; color: #7e9ec2; }
+    .spec-value-tech { font-size: 0.8rem; font-weight: 600; color: #eef5ff; }
 
     .btn-confirm-neon {
       width: 100%;
@@ -252,35 +286,39 @@
       transform: scale(0.98);
     }
 
-    /* ===== BOTTOM SECTION: 4 MODELS CENTERED BELOW ===== */
-    .models-carousel-section {
-      flex: 1;
-      background: rgba(8, 14, 24, 0.6);
-      backdrop-filter: blur(16px);
+    /* ===== FLOATING BOTTOM CAROUSEL ===== */
+    .floating-carousel {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      background: rgba(8, 14, 24, 0.7);
+      backdrop-filter: blur(20px);
       border-radius: 28px;
       border: 1px solid rgba(0, 212, 255, 0.3);
       padding: 16px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      z-index: 15;
+      transition: all 0.3s ease;
     }
 
-    .section-label {
+    .carousel-header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .carousel-label {
       font-family: 'Orbitron', monospace;
-      font-size: 0.75rem;
-      text-transform: uppercase;
+      font-size: 0.7rem;
       letter-spacing: 3px;
       color: var(--neon-blue);
-      text-align: center;
-      text-shadow: 0 0 5px rgba(0,212,255,0.5);
+      text-transform: uppercase;
     }
 
     .models-grid-center {
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 28px;
-      flex-wrap: nowrap;
+      gap: 24px;
       overflow-x: auto;
       padding: 8px 12px;
       scroll-behavior: smooth;
@@ -290,17 +328,17 @@
     .models-grid-center::-webkit-scrollbar-track { background: #0f1a2c; border-radius: 10px; }
     .models-grid-center::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
 
-    /* 4 MODEL CARDS - CENTERED */
+    /* MODEL CARDS */
     .model-card-center {
-      flex: 0 0 200px;
+      flex: 0 0 180px;
       background: linear-gradient(145deg, rgba(0, 30, 50, 0.8), rgba(0, 15, 30, 0.9));
-      border-radius: 28px;
-      padding: 16px 12px;
+      border-radius: 24px;
+      padding: 14px 12px;
       text-align: center;
       cursor: pointer;
       border: 1px solid rgba(0, 212, 255, 0.4);
       transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(4px);
     }
 
     .model-card-center:hover {
@@ -318,9 +356,9 @@
 
     .model-icon-img {
       width: 100%;
-      height: 110px;
+      height: 90px;
       object-fit: contain;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       filter: drop-shadow(0 0 6px rgba(0,212,255,0.4));
       transition: transform 0.2s;
     }
@@ -332,22 +370,23 @@
     .model-name {
       font-family: 'Orbitron', monospace;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #c4edff;
       margin-top: 6px;
-      letter-spacing: 0.5px;
     }
 
     .model-badge {
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       color: #7e9ec2;
       margin-top: 4px;
     }
 
+    /* ANIMATIONS */
     @keyframes slideIntoView {
-      0% { opacity: 0; transform: translateY(30px); filter: blur(2px);}
+      0% { opacity: 0; transform: translateY(20px); filter: blur(2px);}
       100% { opacity: 1; transform: translateY(0); filter: blur(0);}
     }
+
     .slide-in {
       animation: slideIntoView 0.4s ease forwards;
     }
@@ -355,67 +394,90 @@
     .panel-slide-tech {
       animation: panelGlide 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
     }
+
     @keyframes panelGlide {
-      from { opacity: 0; transform: translateX(25px); }
+      from { opacity: 0; transform: translateX(30px); }
       to { opacity: 1; transform: translateX(0); }
     }
 
-    @media (max-width: 1000px) {
-      .selected-plane-card { width: 340px; }
-      .model-card-center { flex: 0 0 170px; }
-      .model-icon-img { height: 90px; }
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .floating-panel { width: 320px; top: 80px; max-height: calc(100vh - 300px); }
+      .model-card-center { flex: 0 0 150px; }
+      .model-icon-img { height: 75px; }
+      .brand h1 { font-size: 1rem; }
+    }
+
+    @media (max-width: 700px) {
+      .floating-panel { width: 280px; right: 12px; top: 70px; }
+      .model-card-center { flex: 0 0 130px; padding: 10px 8px; }
+      .model-name { font-size: 0.7rem; }
+      .floating-carousel { padding: 12px 16px; }
+      .brand h1 { font-size: 0.9rem; }
+      .brand-icon { font-size: 22px; }
     }
   </style>
 </head>
 <body>
 <div class="app-container">
+  <!-- Top Bar - Overlay on 3D view -->
   <div class="top-bar">
     <div class="brand">
       <div class="brand-icon">⚡🛸</div>
       <h1>AEROSPACE FRONTIER: NEURAL HANGAR</h1>
-      <span style="font-size:0.7rem;">| 4 core vessels</span>
+      <span class="version-tag">| full-immersion 3D</span>
     </div>
   </div>
 
-  <div class="main-layout">
-    <!-- TOP SECTION: 3D Viewer + Info Panel -->
-    <div class="top-section">
-      <div class="viewport-area">
-        <model-viewer id="aircraft-viewer" src="" alt="3D aircraft" auto-rotate camera-controls touch-action="pan-y" exposure="1.2" shadow-intensity="0.8" camera-orbit="45deg 75deg 4.2m" style="width:100%; height:100%;"></model-viewer>
-        <div class="model-status" id="modelStatus">⏳ INITIALIZING HANGAR</div>
-      </div>
+  <!-- Full Screen 3D Viewer -->
+  <div class="fullscreen-viewport">
+    <model-viewer 
+      id="aircraft-viewer" 
+      src="" 
+      alt="3D aircraft" 
+      auto-rotate 
+      rotation-speed="0.8"
+      camera-controls 
+      touch-action="pan-y" 
+      exposure="1.3" 
+      shadow-intensity="0.9" 
+      camera-orbit="35deg 75deg 5m"
+      style="width:100%; height:100%; background: radial-gradient(circle at center, #0a1525, #020408);">
+    </model-viewer>
+    <div class="model-status" id="modelStatus">⏳ INITIALIZING HOLOGRAPHIC DISPLAY</div>
+  </div>
 
-      <div class="selected-plane-card" id="selectedPlaneCard">
-        <img class="card-preview-img" id="cardPreviewImg" alt="aircraft preview">
-        <div class="card-details">
-          <div class="plane-title" id="planeNameDisplay">Artemis Class Biplane</div>
-          <div class="metrics-grid">
-            <div class="tech-widget"><div class="widget-icon">⛽</div><div class="widget-label">FUEL</div><div class="widget-value" id="fuelValue">--</div></div>
-            <div class="tech-widget"><div class="widget-icon">📡</div><div class="widget-label">RANGE</div><div class="widget-value" id="distanceValue">--</div></div>
-            <div class="tech-widget"><div class="widget-icon">⚙️</div><div class="widget-label">T/W RATIO</div><div class="widget-value" id="twrValue">--</div></div>
-            <div class="tech-widget"><div class="widget-icon">🌡️</div><div class="widget-label">CEILING</div><div class="widget-value" id="ceilingValue">--</div></div>
-          </div>
-          <div class="spec-grid-tech" id="specGridContainer"></div>
-          <button class="btn-confirm-neon" id="confirmSelectionBtn">🔷 DEPLOY MISSION BRIEF 🔷</button>
-        </div>
-      </div>
+  <!-- Right Panel - Floating over the 3D view -->
+  <div class="floating-panel" id="selectedPlaneCard">
+    <div class="panel-header">
+      <div class="panel-glow"></div>
+      <h3>CURRENT VESSEL</h3>
     </div>
+    <img class="card-preview-img" id="cardPreviewImg" alt="aircraft preview">
+    <div class="card-details">
+      <div class="plane-title" id="planeNameDisplay">Artemis Class Biplane</div>
+      <div class="metrics-grid">
+        <div class="tech-widget"><div class="widget-icon">⛽</div><div class="widget-label">FUEL</div><div class="widget-value" id="fuelValue">--</div></div>
+        <div class="tech-widget"><div class="widget-icon">📡</div><div class="widget-label">RANGE</div><div class="widget-value" id="distanceValue">--</div></div>
+        <div class="tech-widget"><div class="widget-icon">⚙️</div><div class="widget-label">T/W RATIO</div><div class="widget-value" id="twrValue">--</div></div>
+        <div class="tech-widget"><div class="widget-icon">🌡️</div><div class="widget-label">CEILING</div><div class="widget-value" id="ceilingValue">--</div></div>
+      </div>
+      <div class="spec-grid-tech" id="specGridContainer"></div>
+      <button class="btn-confirm-neon" id="confirmSelectionBtn">🔷 DEPLOY MISSION BRIEF 🔷</button>
+    </div>
+  </div>
 
-    <!-- BOTTOM SECTION: 4 MODELS CENTERED BELOW -->
-    <div class="models-carousel-section">
-      <div class="section-label">⚡ ACTIVE FLEET — SELECT VESSEL ⚡</div>
-      <div class="models-grid-center" id="modelsGridCenter">
-        <!-- 4 model cards will be injected here dynamically -->
-      </div>
+  <!-- Bottom Carousel - Floating over 3D view -->
+  <div class="floating-carousel">
+    <div class="carousel-header">
+      <span class="carousel-label">✦ SELECT AIRCRAFT - CLICK TO SLIDE INTO FRAME ✦</span>
     </div>
+    <div class="models-grid-center" id="modelsGridCenter"></div>
   </div>
 </div>
 
 <script>
   // ========== FLEET DATA: 4 MODELS WITH YOUR EXACT FILE NAMES ==========
-  // PNG icons: artemis class biplane-plane.png, artemis g-6 interceptor-plane.png, f-22 raptor-plane.png, nomad skycar-plane.png
-  // 3D models: artemis class biplane.glb, artemis g-6 interceptor.glb, f-22 raptor.glb, nomad skycar.glb
-  
   const fleetData = [
     {
       id: "artemis_biplane",
@@ -489,14 +551,15 @@
 
   const MODEL_BASE_PATH = "./";
   const ICON_BASE_PATH = "./";
-  
+
   function getModelPath(modelFile) { return MODEL_BASE_PATH + modelFile; }
   function getIconPath(iconFile) { return ICON_BASE_PATH + iconFile; }
 
   // DOM elements
   let currentSelectedPlaneId = fleetData[0].id;
   let isTransitioning = false;
-  
+  let slideDirection = "right"; // Track slide direction for variety
+
   const modelViewer = document.getElementById('aircraft-viewer');
   const cardPreviewImg = document.getElementById('cardPreviewImg');
   const planeNameDisplay = document.getElementById('planeNameDisplay');
@@ -510,6 +573,7 @@
   const ceilingValueSpan = document.getElementById('ceilingValue');
   const rightPanel = document.getElementById('selectedPlaneCard');
 
+  // Handle image loading errors
   function handleImageError(imgElement, fallbackName) {
     if (!imgElement.getAttribute('data-fallback-set')) {
       imgElement.setAttribute('data-fallback-set', 'true');
@@ -517,13 +581,24 @@
     }
   }
 
+  // Animation: 3D model slide effect - alternating directions for dramatic effect
   function animateModelSlide() {
-    modelViewer.classList.remove('model-transition');
+    modelViewer.classList.remove('model-transition', 'model-slide-left');
     void modelViewer.offsetWidth;
-    modelViewer.classList.add('model-transition');
-    setTimeout(() => modelViewer.classList.remove('model-transition'), 500);
+    
+    // Alternate slide direction based on which side the card was clicked (for variety)
+    if (slideDirection === "left") {
+      modelViewer.classList.add('model-slide-left');
+    } else {
+      modelViewer.classList.add('model-transition');
+    }
+    
+    setTimeout(() => {
+      modelViewer.classList.remove('model-transition', 'model-slide-left');
+    }, 600);
   }
 
+  // Animation: Right panel slide effect
   function animateRightPanel() {
     rightPanel.classList.remove('panel-slide-tech');
     void rightPanel.offsetWidth;
@@ -531,6 +606,7 @@
     setTimeout(() => rightPanel.classList.remove('panel-slide-tech'), 400);
   }
 
+  // Render right panel with plane data
   function renderRightPanel(plane) {
     planeNameDisplay.textContent = plane.name;
     const iconPath = getIconPath(plane.iconFile);
@@ -550,6 +626,7 @@
       { label: "PASSENGERS", value: plane.passengerCapacity },
       { label: "COST", value: plane.cost }
     ];
+    
     specGridContainer.innerHTML = specs.map(spec => `
       <div class="spec-item-tech">
         <div class="spec-label-tech">${spec.label}</div>
@@ -558,32 +635,52 @@
     `).join('');
   }
 
-  function updateModelForPlane(plane) {
+  // Update 3D model with smooth sliding transition when clicking
+  function updateModelForPlane(plane, direction = "right") {
     const modelPath = getModelPath(plane.modelFile);
+    
+    // Set slide direction for animation
+    slideDirection = direction;
+    
     if (modelViewer.src === modelPath && modelViewer.loaded) {
+      // Even if same model, trigger slide animation for visual feedback
       animateModelSlide();
       return;
     }
-    modelStatusSpan.textContent = `🌀 UPLINK: ${plane.name}`;
+    
+    modelStatusSpan.textContent = `🌀 UPLINK: ${plane.name} - SLIDING INTO FRAME`;
     modelViewer.style.opacity = "0.7";
-    modelViewer.src = modelPath;
+    
+    // Brief delay to show the slide transition effect
+    setTimeout(() => {
+      modelViewer.src = modelPath;
+    }, 50);
     
     const onLoad = () => {
       modelViewer.style.opacity = "1";
-      animateModelSlide();
-      modelStatusSpan.textContent = `✅ ${plane.name} | ACTIVE`;
-      setTimeout(() => {}, 1500);
+      // Trigger the slide-in animation after model loads
+      setTimeout(() => {
+        animateModelSlide();
+      }, 50);
+      modelStatusSpan.textContent = `✅ ${plane.name} | HOLOGRAPHIC ACTIVE`;
+      setTimeout(() => {
+        if (modelStatusSpan) modelStatusSpan.style.opacity = "0.9";
+      }, 2000);
       modelViewer.removeEventListener('load', onLoad);
     };
-    modelViewer.addEventListener('load', onLoad, { once: true });
-    modelViewer.addEventListener('error', () => {
+    
+    const onError = () => {
       modelStatusSpan.textContent = `⚠️ MODEL OFFLINE: ${plane.modelFile}`;
       modelViewer.style.opacity = "1";
-    });
+      modelViewer.removeEventListener('error', onError);
+    };
+    
+    modelViewer.addEventListener('load', onLoad, { once: true });
+    modelViewer.addEventListener('error', onError, { once: true });
   }
 
-  // Set active plane with smooth slide effect
-  function setActivePlane(planeId) {
+  // Set active plane with smooth slide transition
+  function setActivePlane(planeId, clickDirection = "right") {
     if (isTransitioning) return;
     const plane = fleetData.find(p => p.id === planeId);
     if (!plane) return;
@@ -591,7 +688,7 @@
     isTransitioning = true;
     currentSelectedPlaneId = planeId;
     renderRightPanel(plane);
-    updateModelForPlane(plane);
+    updateModelForPlane(plane, clickDirection);
     updateActiveCard(planeId);
     animateRightPanel();
     
@@ -601,9 +698,10 @@
       setTimeout(() => activeCard.classList.remove('slide-in'), 450);
       activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     }
-    setTimeout(() => { isTransitioning = false; }, 550);
+    setTimeout(() => { isTransitioning = false; }, 650);
   }
 
+  // Update active card highlight
   function updateActiveCard(activeId) {
     document.querySelectorAll('.model-card-center').forEach(card => {
       if (card.getAttribute('data-plane-id') === activeId) {
@@ -642,14 +740,18 @@
       card.appendChild(nameDiv);
       card.appendChild(badge);
       
+      // Determine slide direction based on card position relative to current
       card.addEventListener('click', (e) => {
         e.stopPropagation();
-        setActivePlane(plane.id);
+        // Determine slide direction for dramatic effect
+        const currentIndex = fleetData.findIndex(p => p.id === currentSelectedPlaneId);
+        const newIndex = fleetData.findIndex(p => p.id === plane.id);
+        const direction = newIndex > currentIndex ? "right" : "left";
+        setActivePlane(plane.id, direction);
       });
       
       modelsGrid.appendChild(card);
       
-      // Entrance animation
       setTimeout(() => {
         card.classList.add('slide-in');
         setTimeout(() => card.classList.remove('slide-in'), 500);
@@ -657,23 +759,60 @@
     });
   }
 
-  // Confirm handler
+  // Drag-to-scroll for carousel
+  function initDragScroll() {
+    if (!modelsGrid) return;
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+    
+    modelsGrid.addEventListener('mousedown', (e) => {
+      isDown = true;
+      modelsGrid.style.cursor = 'grabbing';
+      startX = e.pageX - modelsGrid.offsetLeft;
+      scrollLeft = modelsGrid.scrollLeft;
+    });
+    modelsGrid.addEventListener('mouseleave', () => {
+      isDown = false;
+      modelsGrid.style.cursor = 'grab';
+    });
+    modelsGrid.addEventListener('mouseup', () => {
+      isDown = false;
+      modelsGrid.style.cursor = 'grab';
+    });
+    modelsGrid.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - modelsGrid.offsetLeft;
+      const walk = (x - startX) * 1.2;
+      modelsGrid.scrollLeft = scrollLeft - walk;
+    });
+    modelsGrid.style.cursor = 'grab';
+  }
+
+  // Confirm selection handler
   confirmBtn.addEventListener('click', () => {
     const plane = fleetData.find(p => p.id === currentSelectedPlaneId);
     if (plane) {
-      alert(`🚀 NEXUS COMMAND\n\n✈️ ${plane.name}\n⛽ FUEL: ${plane.fuelRequired}\n📡 RANGE: ${plane.flightDistance}\n⚡ T/W: ${plane.twr}\n🌡️ CEILING: ${plane.ceiling}\n\n📁 3D Model: ${plane.modelFile}\n🖼️ Icon: ${plane.iconFile}\n\nMISSION DEPLOYED.`);
+      alert(`🚀 NEXUS COMMAND\n\n✈️ ${plane.name}\n⛽ FUEL: ${plane.fuelRequired}\n📡 RANGE: ${plane.flightDistance}\n⚡ T/W: ${plane.twr}\n🌡️ CEILING: ${plane.ceiling}\n\nMISSION DEPLOYED.`);
     }
   });
 
   // Initialize
   function init() {
     buildModelsGrid();
+    initDragScroll();
     
     if (fleetData.length > 0) {
       const defaultPlane = fleetData[0];
       currentSelectedPlaneId = defaultPlane.id;
       renderRightPanel(defaultPlane);
-      updateModelForPlane(defaultPlane);
+      
+      // Initial model load with slight delay for dramatic effect
+      setTimeout(() => {
+        updateModelForPlane(defaultPlane, "right");
+      }, 100);
+      
       updateActiveCard(defaultPlane.id);
       setTimeout(() => {
         const firstCard = document.querySelector(`.model-card-center[data-plane-id="${defaultPlane.id}"]`);
@@ -682,8 +821,12 @@
       }, 200);
     }
   }
-  
-  init();
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 </script>
 </body>
 </html>

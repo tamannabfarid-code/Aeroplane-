@@ -6,7 +6,6 @@
 
 body {
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Orbitron', monospace;
-  background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
   height: 100vh;
   width: 100vw;
   overflow: hidden;
@@ -19,31 +18,102 @@ body {
 :root {
   --neon-blue: #00d4ff;
   --neon-purple: #b000ff;
-  --dark-bg: #0a0f1a;
-  --glass-bg: rgba(12, 20, 35, 0.65);
+  --glass-bg: rgba(12, 20, 35, 0.75);
+  --glass-border: rgba(0, 212, 255, 0.35);
 }
 
 .app-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  width: 100%;
-  background: radial-gradient(ellipse at 50% 40%, rgba(0, 40, 60, 0.25), transparent);
   position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* ===== TOP BAR ===== */
+/* ===== FULL SCREEN 3D VIEWPORT ===== */
+.fullscreen-viewport {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+model-viewer {
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, #0a1525, #020408);
+  --poster-color: #050a14;
+}
+
+/* Slide transition for model viewer */
+model-viewer.model-transition {
+  animation: modelSlideIn 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+}
+
+@keyframes modelSlideIn {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.92) translateX(60px);
+    filter: blur(3px);
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1) translateX(0);
+    filter: blur(0);
+  }
+}
+
+/* Slide from left variant */
+model-viewer.model-slide-left {
+  animation: modelSlideFromLeft 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+}
+
+@keyframes modelSlideFromLeft {
+  0% { 
+    opacity: 0; 
+    transform: scale(0.92) translateX(-60px);
+    filter: blur(3px);
+  }
+  100% { 
+    opacity: 1; 
+    transform: scale(1) translateX(0);
+    filter: blur(0);
+  }
+}
+
+.model-status {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  border-left: 3px solid var(--neon-blue);
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-family: 'Orbitron', monospace;
+  font-weight: 500;
+  color: #bbf0ff;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ===== TOP BAR - OVERLAY ===== */
 .top-bar {
-  background: rgba(8, 14, 26, 0.85);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(8, 14, 26, 0.7);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(0, 212, 255, 0.3);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   padding: 0.8rem 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  position: relative;
-  z-index: 10;
+  z-index: 20;
 }
 
 .brand {
@@ -80,101 +150,59 @@ body {
   font-family: 'Orbitron', monospace;
 }
 
-/* ===== MAIN LAYOUT WITH CENTERED MODELS ===== */
-.main-layout {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 16px 28px 20px 28px;
-  gap: 20px;
-  overflow: hidden;
-}
-
-/* TOP SECTION: 3D VIEWPORT + RIGHT INFO PANEL */
-.top-section {
-  display: flex;
-  gap: 24px;
-  flex: 2;
-  min-height: 0;
-}
-
-/* 3D VIEWPORT - CENTER STAGE */
-.viewport-area {
-  flex: 2;
-  position: relative;
-  border-radius: 28px;
-  background: #03070f;
-  box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.25), 0 20px 40px -12px black;
-  overflow: hidden;
-  border: 1px solid rgba(0, 212, 255, 0.4);
-}
-
-model-viewer {
-  width: 100%;
-  height: 100%;
-  background-color: #050a14;
-  --poster-color: #050a14;
-}
-
-model-viewer.model-transition {
-  animation: modelSlideIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2);
-}
-
-@keyframes modelSlideIn {
-  0% { opacity: 0; transform: scale(0.94) translateY(12px); filter: blur(2px);}
-  100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0);}
-}
-
-.model-status {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(12px);
-  border-left: 3px solid var(--neon-blue);
-  padding: 6px 14px;
-  border-radius: 8px;
-  font-size: 0.7rem;
-  font-family: 'Orbitron', monospace;
-  font-weight: 500;
-  color: #bbf0ff;
-  z-index: 5;
-}
-
-/* RIGHT PANEL - TECHNO CARD */
-.selected-plane-card {
+/* ===== FLOATING RIGHT PANEL ===== */
+.floating-panel {
+  position: fixed;
+  top: 90px;
+  right: 24px;
   width: 380px;
+  max-height: calc(100vh - 280px);
   background: var(--glass-bg);
-  backdrop-filter: blur(16px);
-  border-radius: 32px;
-  border: 1px solid rgba(0, 212, 255, 0.35);
-  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.6);
-  display: flex;
-  flex-direction: column;
+  backdrop-filter: blur(20px);
+  border-radius: 28px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 212, 255, 0.1);
   overflow-y: auto;
+  z-index: 15;
+  transition: all 0.3s ease;
 }
 
-.selected-plane-card::-webkit-scrollbar { width: 4px; }
-.selected-plane-card::-webkit-scrollbar-track { background: #0f1a2c; border-radius: 10px; }
-.selected-plane-card::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+.floating-panel::-webkit-scrollbar { width: 4px; }
+.floating-panel::-webkit-scrollbar-track { background: #0f1a2c; border-radius: 10px; }
+.floating-panel::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+
+.panel-header {
+  padding: 12px 20px 0;
+}
+
+.panel-header h3 {
+  font-family: 'Orbitron', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 2px;
+  color: var(--neon-blue);
+  text-transform: uppercase;
+}
+
+.panel-glow {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+  margin-bottom: 8px;
+}
 
 .card-preview-img {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: contain;
-  background: #07121f;
-  border-top-left-radius: 32px;
-  border-top-right-radius: 32px;
-  border-bottom: 1px solid rgba(0, 212, 255, 0.4);
+  background: rgba(0, 0, 0, 0.4);
   padding: 12px;
 }
 
 .card-details {
-  padding: 1.2rem 1.5rem 1.8rem;
+  padding: 1rem 1.5rem 1.5rem;
 }
 
 .plane-title {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   font-weight: 800;
   font-family: 'Orbitron', monospace;
   background: linear-gradient(135deg, #fff, #88ddff);
@@ -186,7 +214,7 @@ model-viewer.model-transition {
   padding-left: 12px;
 }
 
-/* WIDGETS GRID */
+/* WIDGETS */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -196,7 +224,7 @@ model-viewer.model-transition {
 
 .tech-widget {
   background: rgba(0, 20, 40, 0.6);
-  border-radius: 20px;
+  border-radius: 16px;
   padding: 10px 6px;
   text-align: center;
   border: 1px solid rgba(0, 212, 255, 0.25);
@@ -208,9 +236,9 @@ model-viewer.model-transition {
   box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
 }
 
-.widget-icon { font-size: 1.4rem; margin-bottom: 4px; }
-.widget-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #8db4d4; font-family: 'Orbitron', monospace; }
-.widget-value { font-size: 1.1rem; font-weight: 700; color: #c4edff; font-family: monospace; }
+.widget-icon { font-size: 1.3rem; margin-bottom: 4px; }
+.widget-label { font-size: 0.55rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #8db4d4; }
+.widget-value { font-size: 1rem; font-weight: 700; color: #c4edff; }
 
 .spec-grid-tech {
   display: grid;
@@ -226,8 +254,8 @@ model-viewer.model-transition {
   border-left: 2px solid var(--neon-blue);
 }
 
-.spec-label-tech { font-size: 0.6rem; text-transform: uppercase; font-weight: 600; color: #7e9ec2; }
-.spec-value-tech { font-size: 0.85rem; font-weight: 600; color: #eef5ff; }
+.spec-label-tech { font-size: 0.55rem; text-transform: uppercase; font-weight: 600; color: #7e9ec2; }
+.spec-value-tech { font-size: 0.8rem; font-weight: 600; color: #eef5ff; }
 
 .btn-confirm-neon {
   width: 100%;
@@ -250,35 +278,39 @@ model-viewer.model-transition {
   transform: scale(0.98);
 }
 
-/* ===== BOTTOM SECTION: 4 MODELS CENTERED ===== */
-.models-carousel-section {
-  flex: 1;
-  background: rgba(8, 14, 24, 0.6);
-  backdrop-filter: blur(16px);
+/* ===== FLOATING BOTTOM CAROUSEL ===== */
+.floating-carousel {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  background: rgba(8, 14, 24, 0.7);
+  backdrop-filter: blur(20px);
   border-radius: 28px;
   border: 1px solid rgba(0, 212, 255, 0.3);
   padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  z-index: 15;
+  transition: all 0.3s ease;
 }
 
-.section-label {
+.carousel-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.carousel-label {
   font-family: 'Orbitron', monospace;
-  font-size: 0.75rem;
-  text-transform: uppercase;
+  font-size: 0.7rem;
   letter-spacing: 3px;
   color: var(--neon-blue);
-  text-align: center;
-  text-shadow: 0 0 5px rgba(0,212,255,0.5);
+  text-transform: uppercase;
 }
 
 .models-grid-center {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 28px;
-  flex-wrap: nowrap;
+  gap: 24px;
   overflow-x: auto;
   padding: 8px 12px;
   scroll-behavior: smooth;
@@ -288,17 +320,17 @@ model-viewer.model-transition {
 .models-grid-center::-webkit-scrollbar-track { background: #0f1a2c; border-radius: 10px; }
 .models-grid-center::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
 
-/* 4 MODEL CARDS */
+/* MODEL CARDS */
 .model-card-center {
-  flex: 0 0 200px;
+  flex: 0 0 180px;
   background: linear-gradient(145deg, rgba(0, 30, 50, 0.8), rgba(0, 15, 30, 0.9));
-  border-radius: 28px;
-  padding: 16px 12px;
+  border-radius: 24px;
+  padding: 14px 12px;
   text-align: center;
   cursor: pointer;
   border: 1px solid rgba(0, 212, 255, 0.4);
   transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
 }
 
 .model-card-center:hover {
@@ -316,9 +348,9 @@ model-viewer.model-transition {
 
 .model-icon-img {
   width: 100%;
-  height: 110px;
+  height: 90px;
   object-fit: contain;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   filter: drop-shadow(0 0 6px rgba(0,212,255,0.4));
   transition: transform 0.2s;
 }
@@ -330,21 +362,20 @@ model-viewer.model-transition {
 .model-name {
   font-family: 'Orbitron', monospace;
   font-weight: 700;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #c4edff;
   margin-top: 6px;
-  letter-spacing: 0.5px;
 }
 
 .model-badge {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   color: #7e9ec2;
   margin-top: 4px;
 }
 
 /* ANIMATIONS */
 @keyframes slideIntoView {
-  0% { opacity: 0; transform: translateY(30px); filter: blur(2px);}
+  0% { opacity: 0; transform: translateY(20px); filter: blur(2px);}
   100% { opacity: 1; transform: translateY(0); filter: blur(0);}
 }
 
@@ -357,21 +388,23 @@ model-viewer.model-transition {
 }
 
 @keyframes panelGlide {
-  from { opacity: 0; transform: translateX(25px); }
+  from { opacity: 0; transform: translateX(30px); }
   to { opacity: 1; transform: translateX(0); }
 }
 
 /* RESPONSIVE */
-@media (max-width: 1000px) {
-  .selected-plane-card { width: 340px; }
-  .model-card-center { flex: 0 0 170px; }
-  .model-icon-img { height: 90px; }
-  .brand h1 { font-size: 1.2rem; }
+@media (max-width: 900px) {
+  .floating-panel { width: 320px; top: 80px; max-height: calc(100vh - 300px); }
+  .model-card-center { flex: 0 0 150px; }
+  .model-icon-img { height: 75px; }
+  .brand h1 { font-size: 1rem; }
 }
 
-@media (max-width: 780px) {
-  .top-section { flex-direction: column; }
-  .selected-plane-card { width: 100%; max-height: 280px; }
-  .models-carousel-section { flex: 0.8; }
-  .model-card-center { flex: 0 0 150px; }
+@media (max-width: 700px) {
+  .floating-panel { width: 280px; right: 12px; top: 70px; }
+  .model-card-center { flex: 0 0 130px; padding: 10px 8px; }
+  .model-name { font-size: 0.7rem; }
+  .floating-carousel { padding: 12px 16px; }
+  .brand h1 { font-size: 0.9rem; }
+  .brand-icon { font-size: 22px; }
 }

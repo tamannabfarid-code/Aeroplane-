@@ -238,14 +238,12 @@
             text-overflow: ellipsis;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
     <div id="canvas-container"></div>
 
     <div class="interface-container">
-        
         <header>
             <h1>Aerospace Frontier: Collection</h1>
         </header>
@@ -275,12 +273,13 @@
             </div>
         </main>
 
-        <div class="selection-ribbon" id="selector-ribbon">
-            </div>
+        <div class="selection-ribbon" id="selector-ribbon"></div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
     <script>
-        // Data Structure matching your exact hyphenated lower-case asset naming strings
         const fleetData = [
             {
                 id: "biplane",
@@ -293,7 +292,7 @@
                 capacity: "2",
                 cost: "150,000 Credits",
                 icon: "artemis class biplane-plane.png",
-                color: 0xd4ac0d
+                model: "artemis class biplane.glb"
             },
             {
                 id: "g6",
@@ -306,7 +305,7 @@
                 capacity: "1",
                 cost: "1,450,000 Credits",
                 icon: "artemis g-6 interceptor-plane.png",
-                color: 0x7b7d7d
+                model: "artemis g-6 interceptor.glb"
             },
             {
                 id: "f22",
@@ -319,7 +318,7 @@
                 capacity: "1",
                 cost: "2,500,000 Credits",
                 icon: "f-22 raptor-plane.png",
-                color: 0x34495e
+                model: "f-22 raptor.glb"
             },
             {
                 id: "nomad",
@@ -332,13 +331,17 @@
                 capacity: "4",
                 cost: "850,000 Credits",
                 icon: "nomad skycar-plane.png",
-                color: 0x2e4053
+                model: "nomad skycar.glb"
             }
         ];
 
         let activeIndex = 0;
         const ribbon = document.getElementById('selector-ribbon');
-        
+        let scene, camera, renderer, modelGroup;
+        let loadedMeshes = {}; 
+        let targetX = 0; 
+        const slideSpeed = 0.08;
+
         function setupUI() {
             fleetData.forEach((plane, index) => {
                 const card = document.createElement('div');
@@ -368,7 +371,7 @@
 
             document.getElementById('plane-title').innerText = data.name;
             document.getElementById('plane-thumb').src = data.icon;
-            document.getElementById('plane-thumb').style.display = 'block'; // Make sure to show if hidden by previous error handling hooks
+            document.getElementById('plane-thumb').style.display = 'block'; 
             document.getElementById('val-vendor').innerText = data.vendor;
             document.getElementById('val-type').innerText = data.type;
             document.getElementById('val-role').innerText = data.role;
@@ -377,14 +380,8 @@
             document.getElementById('val-cap').innerText = data.capacity;
             document.getElementById('val-cost').innerText = data.cost;
 
-            trigger3DTransition(index);
+            trigger3DTransition(data.model);
         }
-
-        // --- Three.js 3D Engine Setup ---
-        let scene, camera, renderer, modelGroup;
-        let meshes = [];
-        let targetX = 0; 
-        const slideSpeed = 0.08;
 
         function init3D() {
             const container = document.getElementById('canvas-container');
@@ -393,16 +390,17 @@
             scene.background = new THREE.Color(0xf0f3f5);
 
             camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 2, 7);
+            camera.position.set(0, 1.8, 6.5);
             camera.lookAt(0, 0, 0);
 
-            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.shadowMap.enabled = true;
+            renderer.outputEncoding = THREE.sRGBEncoding; 
             container.appendChild(renderer.domElement);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
             scene.add(ambientLight);
 
             const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -416,81 +414,62 @@
             modelGroup = new THREE.Group();
             scene.add(modelGroup);
 
-            buildProceduralPlaceholders();
+            preloadGLBModels();
 
             window.addEventListener('resize', onWindowResize);
             animate();
         }
 
-        function buildProceduralPlaceholders() {
-            // 1. Biplane
-            const biplaneGroup = new THREE.Group();
-            const bodyGeo = new THREE.BoxGeometry(0.6, 0.5, 2);
-            const wingGeo = new THREE.BoxGeometry(3.2, 0.05, 0.6);
-            const matYellow = new THREE.MeshStandardMaterial({ color: fleetData[0].color, roughness: 0.4 });
-            const body = new THREE.Mesh(bodyGeo, matYellow);
-            const topWing = new THREE.Mesh(wingGeo, matYellow);
-            topWing.position.set(0, 0.5, 0.2);
-            const bottomWing = new THREE.Mesh(wingGeo, matYellow);
-            bottomWing.position.set(0, -0.2, 0.2);
-            biplaneGroup.add(body, topWing, bottomWing);
-            meshes.push(biplaneGroup);
+        function preloadGLBModels() {
+            const loader = new THREE.GLTFLoader();
 
-            // 2. Artemis G-6
-            const g6Group = new THREE.Group();
-            const jetMat = new THREE.MeshStandardMaterial({ color: fleetData[1].color, roughness: 0.3, metalness: 0.2 });
-            const fuselage = new THREE.Mesh(new THREE.ConeGeometry(0.4, 2.5, 4), jetMat);
-            fuselage.rotation.x = Math.PI / 2;
-            const wings = new THREE.Mesh(new THREE.ConeGeometry(1.5, 1.2, 3), jetMat);
-            wings.rotation.x = Math.PI / 2;
-            wings.position.set(0, 0, -0.4);
-            g6Group.add(fuselage, wings);
-            meshes.push(g6Group);
+            fleetData.forEach((plane, idx) => {
+                loader.load(
+                    plane.model,
+                    (gltf) => {
+                        const modelScene = gltf.scene;
 
-            // 3. F-22 Raptor
-            const f22Group = new THREE.Group();
-            const stealthMat = new THREE.MeshStandardMaterial({ color: fleetData[2].color, roughness: 0.5, metalness: 0.5 });
-            const mainBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.2, 2.4), stealthMat);
-            const mainWings = new THREE.Mesh(new THREE.ConeGeometry(1.8, 1.5, 4), stealthMat);
-            mainWings.rotation.x = Math.PI / 2;
-            mainWings.scale.y = 0.1;
-            f22Group.add(mainBody, mainWings);
-            meshes.push(f22Group);
+                        const box = new THREE.Box3().setFromObject(modelScene);
+                        const center = box.getCenter(new THREE.Vector3());
+                        modelScene.position.x += (modelScene.position.x - center.x);
+                        modelScene.position.y += (modelScene.position.y - center.y);
+                        modelScene.position.z += (modelScene.position.z - center.z);
 
-            // 4. Nomad Skycar
-            const nomadGroup = new THREE.Group();
-            const quadMat = new THREE.MeshStandardMaterial({ color: fleetData[3].color, metalness: 0.8, roughness: 0.2 });
-            const pod = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), quadMat);
-            pod.scale.set(1, 0.7, 1.6);
-            const rotorGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.15, 8);
-            const positions = [[0.8,0,0.6], [-0.8,0,0.6], [0.8,0,-0.6], [-0.8,0,-0.6]];
-            positions.forEach(pos => {
-                const rotor = new THREE.Mesh(rotorGeo, quadMat);
-                rotor.position.set(...pos);
-                nomadGroup.add(rotor);
+                        const size = box.getSize(new THREE.Vector3());
+                        const maxDim = Math.max(size.x, size.y, size.z);
+                        const targetScale = 2.8 / maxDim; 
+                        modelScene.scale.set(targetScale, targetScale, targetScale);
+
+                        loadedMeshes[plane.model] = modelScene;
+
+                        if (idx === 0) {
+                            modelGroup.add(modelScene);
+                        }
+                    },
+                    undefined,
+                    (error) => {
+                        console.error(`Error loading file ${plane.model}:`, error);
+                    }
+                );
             });
-            nomadGroup.add(pod);
-            meshes.push(nomadGroup);
-
-            modelGroup.add(meshes[0]);
         }
 
-        function trigger3DTransition(selectedIndex) {
-            modelGroup.position.x = 4.5; // Snap model off-screen to the right
+        function trigger3DTransition(modelKey) {
+            modelGroup.position.x = 4.5; 
             
             while(modelGroup.children.length > 0){ 
                 modelGroup.remove(modelGroup.children[0]); 
             }
             
-            if(meshes[selectedIndex]) {
-                modelGroup.add(meshes[selectedIndex]);
+            if(loadedMeshes[modelKey]) {
+                modelGroup.add(loadedMeshes[modelKey]);
             }
         }
 
         function animate() {
             requestAnimationFrame(animate);
 
-            modelGroup.rotation.y += 0.008;
+            modelGroup.rotation.y += 0.006;
 
             if (Math.abs(modelGroup.position.x - targetX) > 0.001) {
                 modelGroup.position.x += (targetX - modelGroup.position.x) * slideSpeed;
@@ -511,10 +490,6 @@
             setupUI();
             init3D();
         };
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
-    <script src="app.js"></script>
+    </script>
 </body>
 </html>

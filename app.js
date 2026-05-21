@@ -1,9 +1,4 @@
 // ========== FLEET DATA: 4 MODELS WITH YOUR EXACT FILE NAMES ==========
-// PNG icons: artemis class biplane-plane.png, artemis g-6 interceptor-plane.png, 
-//            f-22 raptor-plane.png, nomad skycar-plane.png
-// 3D models: artemis class biplane.glb, artemis g-6 interceptor.glb, 
-//            f-22 raptor.glb, nomad skycar.glb
-
 const fleetData = [
   {
     id: "artemis_biplane",
@@ -84,6 +79,7 @@ function getIconPath(iconFile) { return ICON_BASE_PATH + iconFile; }
 // DOM elements
 let currentSelectedPlaneId = fleetData[0].id;
 let isTransitioning = false;
+let slideDirection = "right";
 
 const modelViewer = document.getElementById('aircraft-viewer');
 const cardPreviewImg = document.getElementById('cardPreviewImg');
@@ -98,21 +94,28 @@ const twrValueSpan = document.getElementById('twrValue');
 const ceilingValueSpan = document.getElementById('ceilingValue');
 const rightPanel = document.getElementById('selectedPlaneCard');
 
-// Helper: Handle image loading errors
+// Handle image loading errors
 function handleImageError(imgElement, fallbackName) {
   if (!imgElement.getAttribute('data-fallback-set')) {
     imgElement.setAttribute('data-fallback-set', 'true');
     imgElement.src = `https://placehold.co/400x300/1a2a3a/00d4ff?text=${encodeURIComponent(fallbackName || 'Aircraft')}`;
-    console.warn(`Failed to load image for ${fallbackName}`);
   }
 }
 
 // Animation: 3D model slide effect
 function animateModelSlide() {
-  modelViewer.classList.remove('model-transition');
+  modelViewer.classList.remove('model-transition', 'model-slide-left');
   void modelViewer.offsetWidth;
-  modelViewer.classList.add('model-transition');
-  setTimeout(() => modelViewer.classList.remove('model-transition'), 500);
+  
+  if (slideDirection === "left") {
+    modelViewer.classList.add('model-slide-left');
+  } else {
+    modelViewer.classList.add('model-transition');
+  }
+  
+  setTimeout(() => {
+    modelViewer.classList.remove('model-transition', 'model-slide-left');
+  }, 600);
 }
 
 // Animation: Right panel slide effect
@@ -152,23 +155,29 @@ function renderRightPanel(plane) {
   `).join('');
 }
 
-// Update 3D model with smooth loading
-function updateModelForPlane(plane) {
+// Update 3D model with smooth sliding transition
+function updateModelForPlane(plane, direction = "right") {
   const modelPath = getModelPath(plane.modelFile);
+  slideDirection = direction;
+  
   if (modelViewer.src === modelPath && modelViewer.loaded) {
     animateModelSlide();
     return;
   }
   
-  modelStatusSpan.textContent = `🌀 UPLINK: ${plane.name}`;
+  modelStatusSpan.textContent = `🌀 UPLINK: ${plane.name} - SLIDING INTO FRAME`;
   modelViewer.style.opacity = "0.7";
-  modelViewer.src = modelPath;
+  
+  setTimeout(() => {
+    modelViewer.src = modelPath;
+  }, 50);
   
   const onLoad = () => {
     modelViewer.style.opacity = "1";
-    animateModelSlide();
-    modelStatusSpan.textContent = `✅ ${plane.name} | ACTIVE`;
-    setTimeout(() => {}, 1500);
+    setTimeout(() => {
+      animateModelSlide();
+    }, 50);
+    modelStatusSpan.textContent = `✅ ${plane.name} | HOLOGRAPHIC ACTIVE`;
     modelViewer.removeEventListener('load', onLoad);
   };
   
@@ -183,7 +192,7 @@ function updateModelForPlane(plane) {
 }
 
 // Set active plane with smooth slide transition
-function setActivePlane(planeId) {
+function setActivePlane(planeId, clickDirection = "right") {
   if (isTransitioning) return;
   const plane = fleetData.find(p => p.id === planeId);
   if (!plane) return;
@@ -191,7 +200,7 @@ function setActivePlane(planeId) {
   isTransitioning = true;
   currentSelectedPlaneId = planeId;
   renderRightPanel(plane);
-  updateModelForPlane(plane);
+  updateModelForPlane(plane, clickDirection);
   updateActiveCard(planeId);
   animateRightPanel();
   
@@ -201,7 +210,7 @@ function setActivePlane(planeId) {
     setTimeout(() => activeCard.classList.remove('slide-in'), 450);
     activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   }
-  setTimeout(() => { isTransitioning = false; }, 550);
+  setTimeout(() => { isTransitioning = false; }, 650);
 }
 
 // Update active card highlight
@@ -245,12 +254,14 @@ function buildModelsGrid() {
     
     card.addEventListener('click', (e) => {
       e.stopPropagation();
-      setActivePlane(plane.id);
+      const currentIndex = fleetData.findIndex(p => p.id === currentSelectedPlaneId);
+      const newIndex = fleetData.findIndex(p => p.id === plane.id);
+      const direction = newIndex > currentIndex ? "right" : "left";
+      setActivePlane(plane.id, direction);
     });
     
     modelsGrid.appendChild(card);
     
-    // Entrance animation for cards
     setTimeout(() => {
       card.classList.add('slide-in');
       setTimeout(() => card.classList.remove('slide-in'), 500);
@@ -258,15 +269,7 @@ function buildModelsGrid() {
   });
 }
 
-// Confirm selection handler
-confirmBtn.addEventListener('click', () => {
-  const plane = fleetData.find(p => p.id === currentSelectedPlaneId);
-  if (plane) {
-    alert(`🚀 NEXUS COMMAND\n\n✈️ ${plane.name}\n⛽ FUEL: ${plane.fuelRequired}\n📡 RANGE: ${plane.flightDistance}\n⚡ T/W: ${plane.twr}\n🌡️ CEILING: ${plane.ceiling}\n\n📁 3D Model: ${plane.modelFile}\n🖼️ Icon: ${plane.iconFile}\n\nMISSION DEPLOYED.`);
-  }
-});
-
-// Drag-to-scroll for carousel (optional - if you want drag on models grid)
+// Drag-to-scroll for carousel
 function initDragScroll() {
   if (!modelsGrid) return;
   let isDown = false;
@@ -297,7 +300,15 @@ function initDragScroll() {
   modelsGrid.style.cursor = 'grab';
 }
 
-// Initialize the application
+// Confirm selection handler
+confirmBtn.addEventListener('click', () => {
+  const plane = fleetData.find(p => p.id === currentSelectedPlaneId);
+  if (plane) {
+    alert(`🚀 NEXUS COMMAND\n\n✈️ ${plane.name}\n⛽ FUEL: ${plane.fuelRequired}\n📡 RANGE: ${plane.flightDistance}\n⚡ T/W: ${plane.twr}\n🌡️ CEILING: ${plane.ceiling}\n\nMISSION DEPLOYED.`);
+  }
+});
+
+// Initialize
 function init() {
   buildModelsGrid();
   initDragScroll();
@@ -306,7 +317,11 @@ function init() {
     const defaultPlane = fleetData[0];
     currentSelectedPlaneId = defaultPlane.id;
     renderRightPanel(defaultPlane);
-    updateModelForPlane(defaultPlane);
+    
+    setTimeout(() => {
+      updateModelForPlane(defaultPlane, "right");
+    }, 100);
+    
     updateActiveCard(defaultPlane.id);
     setTimeout(() => {
       const firstCard = document.querySelector(`.model-card-center[data-plane-id="${defaultPlane.id}"]`);
@@ -316,7 +331,6 @@ function init() {
   }
 }
 
-// Start the app when DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {

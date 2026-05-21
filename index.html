@@ -1,495 +1,689 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aerospace Frontier: Collection</title>
-    <style>
-        :root {
-            --ui-blue: #3a7bd5;
-            --ui-light-blue: #00d2ff;
-            --bg-glass: rgba(220, 225, 235, 0.85);
-            --border-color: #b0c4de;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Aerospace Frontier | Neural Hangar - 4 Models Center Stage</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            user-select: none;
-        }
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Orbitron', monospace;
+      background: radial-gradient(circle at 20% 30%, #0a0f1a, #03060c);
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      color: #e0f2fe;
+    }
 
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: linear-gradient(135deg, #eef2f3 0%, #8e9eab 100%);
-        }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
-        /* UI Wrapper */
-        .interface-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 15px;
-            z-index: 10;
-            pointer-events: none;
-        }
+    /* ===== TECHNO GLOW & NEON EFFECTS ===== */
+    :root {
+      --neon-blue: #00d4ff;
+      --neon-purple: #b000ff;
+      --dark-bg: #0a0f1a;
+      --glass-bg: rgba(12, 20, 35, 0.65);
+    }
 
-        .interface-container * {
-            pointer-events: auto;
-        }
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100%;
+      background: radial-gradient(ellipse at 50% 40%, rgba(0, 40, 60, 0.25), transparent);
+      position: relative;
+    }
 
-        /* 3D Canvas Styling */
-        #canvas-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-        }
+    /* ===== TOP BAR ===== */
+    .top-bar {
+      background: rgba(8, 14, 26, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0, 212, 255, 0.3);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      padding: 0.8rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 10;
+    }
 
-        /* Header */
-        header {
-            width: 100%;
-            background: linear-gradient(90deg, transparent, rgba(180, 195, 210, 0.8), transparent);
-            border-bottom: 2px solid var(--border-color);
-            border-top: 2px solid var(--border-color);
-            text-align: center;
-            padding: 10px 0;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      font-family: 'Orbitron', monospace;
+    }
 
-        header h1 {
-            color: #2c3e50;
-            font-size: 24px;
-            letter-spacing: 3px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
+    .brand-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 0 6px var(--neon-blue));
+      animation: pulseGlow 2s infinite;
+    }
 
-        /* Main Section layout */
-        .main-content {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            flex-grow: 1;
-            width: 100%;
-            padding: 20px 0;
-        }
+    @keyframes pulseGlow {
+      0% { filter: drop-shadow(0 0 2px #00d4ff); }
+      100% { filter: drop-shadow(0 0 8px #00aaff); }
+    }
 
-        /* Right Side Stats Panel */
-        .stats-panel {
-            width: 320px;
-            background: var(--bg-glass);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+    .brand h1 {
+      font-weight: 700;
+      font-size: 1.5rem;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, #ffffff, #88ddff, #00b4ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
 
-        .panel-header {
-            border-bottom: 1px solid rgba(0,0,0,0.1);
-            padding-bottom: 8px;
-        }
+    /* ===== MAIN LAYOUT WITH CENTERED MODELS ===== */
+    .main-layout {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 16px 28px 20px 28px;
+      gap: 20px;
+      overflow: hidden;
+    }
 
-        .panel-header span {
-            font-size: 12px;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            font-weight: bold;
-        }
+    /* TOP SECTION: 3D VIEWPORT + RIGHT INFO PANEL */
+    .top-section {
+      display: flex;
+      gap: 24px;
+      flex: 2;
+      min-height: 0;
+    }
 
-        .panel-header h2 {
-            color: #2c3e50;
-            font-size: 20px;
-            margin-top: 2px;
-        }
+    /* 3D VIEWPORT - CENTER STAGE */
+    .viewport-area {
+      flex: 2;
+      position: relative;
+      border-radius: 28px;
+      background: #03070f;
+      box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.25), 0 20px 40px -12px black;
+      overflow: hidden;
+      border: 1px solid rgba(0, 212, 255, 0.4);
+    }
 
-        .plane-preview-thumb {
-            width: 100%;
-            height: 140px;
-            background: rgba(255,255,255,0.5);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      background-color: #050a14;
+      --poster-color: #050a14;
+    }
 
-        .plane-preview-thumb img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
+    model-viewer.model-transition {
+      animation: modelSlideIn 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+    }
 
-        .stats-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            font-size: 14px;
-        }
+    @keyframes modelSlideIn {
+      0% { opacity: 0; transform: scale(0.94) translateY(12px); filter: blur(2px);}
+      100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0);}
+    }
 
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            color: #34495e;
-        }
+    .model-status {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(12px);
+      border-left: 3px solid var(--neon-blue);
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-family: 'Orbitron', monospace;
+      font-weight: 500;
+      color: #bbf0ff;
+      z-index: 5;
+    }
 
-        .stat-label {
-            color: #7f8c8d;
-        }
+    /* RIGHT PANEL - TECHNO CARD */
+    .selected-plane-card {
+      width: 380px;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      border-radius: 32px;
+      border: 1px solid rgba(0, 212, 255, 0.35);
+      box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
 
-        .stat-value {
-            font-weight: 600;
-        }
+    .selected-plane-card::-webkit-scrollbar { width: 4px; }
+    .selected-plane-card::-webkit-scrollbar-track { background: #0f1a2c; border-radius: 10px; }
+    .selected-plane-card::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
 
-        .cost-row {
-            margin-top: 5px;
-            font-size: 16px;
-            border-top: 1px dashed rgba(0,0,0,0.1);
-            padding-top: 10px;
-        }
+    .card-preview-img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: contain;
+      background: #07121f;
+      border-top-left-radius: 32px;
+      border-top-right-radius: 32px;
+      border-bottom: 1px solid rgba(0, 212, 255, 0.4);
+      padding: 12px;
+    }
 
-        .confirm-btn {
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(135deg, #4a90e2, #357abd);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 10px rgba(74, 144, 226, 0.3);
-        }
+    .card-details {
+      padding: 1.2rem 1.5rem 1.8rem;
+    }
 
-        .confirm-btn:hover {
-            background: linear-gradient(135deg, #357abd, #2a639b);
-            transform: translateY(-1px);
-        }
+    .plane-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-family: 'Orbitron', monospace;
+      background: linear-gradient(135deg, #fff, #88ddff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--neon-blue);
+      padding-left: 12px;
+    }
 
-        /* Bottom Selection Ribbon */
-        .selection-ribbon {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            padding: 10px 0;
-        }
+    /* WIDGETS GRID */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 16px 0 14px;
+    }
 
-        .plane-card {
-            width: 180px;
-            background: var(--bg-glass);
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            padding: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
+    .tech-widget {
+      background: rgba(0, 20, 40, 0.6);
+      border-radius: 20px;
+      padding: 10px 6px;
+      text-align: center;
+      border: 1px solid rgba(0, 212, 255, 0.25);
+      transition: all 0.2s;
+    }
 
-        .plane-card:hover {
-            transform: translateY(-5px);
-            border-color: #7fb3d5;
-        }
+    .tech-widget:hover {
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 12px rgba(0, 212, 255, 0.2);
+    }
 
-        .plane-card.active {
-            border-color: #f39c12;
-            box-shadow: 0 0 15px rgba(243, 156, 18, 0.4);
-            transform: translateY(-3px);
-        }
+    .widget-icon { font-size: 1.4rem; margin-bottom: 4px; }
+    .widget-label { font-size: 0.6rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #8db4d4; font-family: 'Orbitron', monospace; }
+    .widget-value { font-size: 1.1rem; font-weight: 700; color: #c4edff; font-family: monospace; }
 
-        .card-icon {
-            width: 100%;
-            height: 80px;
-            background: rgba(255,255,255,0.4);
-            border-radius: 4px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
+    .spec-grid-tech {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 0.8rem 0;
+    }
 
-        .card-icon img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-        }
+    .spec-item-tech {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 6px 10px;
+      border-radius: 12px;
+      border-left: 2px solid var(--neon-blue);
+    }
 
-        .plane-card p {
-            font-size: 12px;
-            font-weight: 600;
-            color: #2c3e50;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-    </style>
+    .spec-label-tech { font-size: 0.6rem; text-transform: uppercase; font-weight: 600; color: #7e9ec2; }
+    .spec-value-tech { font-size: 0.85rem; font-weight: 600; color: #eef5ff; }
+
+    .btn-confirm-neon {
+      width: 100%;
+      background: linear-gradient(90deg, #0a2a3e, #051a2a);
+      border: 1px solid var(--neon-blue);
+      padding: 10px 0;
+      border-radius: 40px;
+      font-weight: 700;
+      font-family: 'Orbitron', monospace;
+      letter-spacing: 1.5px;
+      color: #ccf4ff;
+      cursor: pointer;
+      transition: all 0.25s;
+      margin-top: 12px;
+    }
+
+    .btn-confirm-neon:hover {
+      background: linear-gradient(90deg, #0f3b55, #062436);
+      box-shadow: 0 0 14px rgba(0, 212, 255, 0.6);
+      transform: scale(0.98);
+    }
+
+    /* ===== BOTTOM SECTION: 4 MODELS CENTERED BELOW ===== */
+    .models-carousel-section {
+      flex: 1;
+      background: rgba(8, 14, 24, 0.6);
+      backdrop-filter: blur(16px);
+      border-radius: 28px;
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-label {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--neon-blue);
+      text-align: center;
+      text-shadow: 0 0 5px rgba(0,212,255,0.5);
+    }
+
+    .models-grid-center {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding: 8px 12px;
+      scroll-behavior: smooth;
+    }
+
+    .models-grid-center::-webkit-scrollbar { height: 4px; }
+    .models-grid-center::-webkit-scrollbar-track { background: #0f1a2c; border-radius: 10px; }
+    .models-grid-center::-webkit-scrollbar-thumb { background: var(--neon-blue); border-radius: 10px; }
+
+    /* 4 MODEL CARDS - CENTERED */
+    .model-card-center {
+      flex: 0 0 200px;
+      background: linear-gradient(145deg, rgba(0, 30, 50, 0.8), rgba(0, 15, 30, 0.9));
+      border-radius: 28px;
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      border: 1px solid rgba(0, 212, 255, 0.4);
+      transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+      backdrop-filter: blur(8px);
+    }
+
+    .model-card-center:hover {
+      transform: translateY(-6px);
+      border-color: var(--neon-blue);
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+    }
+
+    .model-card-center.active-card {
+      border: 2px solid var(--neon-blue);
+      background: linear-gradient(145deg, rgba(0, 60, 90, 0.9), rgba(0, 30, 50, 0.95));
+      box-shadow: 0 0 25px rgba(0, 212, 255, 0.5);
+      transform: translateY(-4px);
+    }
+
+    .model-icon-img {
+      width: 100%;
+      height: 110px;
+      object-fit: contain;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 6px rgba(0,212,255,0.4));
+      transition: transform 0.2s;
+    }
+
+    .model-card-center:hover .model-icon-img {
+      transform: scale(1.03);
+    }
+
+    .model-name {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #c4edff;
+      margin-top: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .model-badge {
+      font-size: 0.65rem;
+      color: #7e9ec2;
+      margin-top: 4px;
+    }
+
+    @keyframes slideIntoView {
+      0% { opacity: 0; transform: translateY(30px); filter: blur(2px);}
+      100% { opacity: 1; transform: translateY(0); filter: blur(0);}
+    }
+    .slide-in {
+      animation: slideIntoView 0.4s ease forwards;
+    }
+
+    .panel-slide-tech {
+      animation: panelGlide 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    }
+    @keyframes panelGlide {
+      from { opacity: 0; transform: translateX(25px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @media (max-width: 1000px) {
+      .selected-plane-card { width: 340px; }
+      .model-card-center { flex: 0 0 170px; }
+      .model-icon-img { height: 90px; }
+    }
+  </style>
 </head>
 <body>
+<div class="app-container">
+  <div class="top-bar">
+    <div class="brand">
+      <div class="brand-icon">⚡🛸</div>
+      <h1>AEROSPACE FRONTIER: NEURAL HANGAR</h1>
+      <span style="font-size:0.7rem;">| 4 core vessels</span>
+    </div>
+  </div>
 
-    <div id="canvas-container"></div>
+  <div class="main-layout">
+    <!-- TOP SECTION: 3D Viewer + Info Panel -->
+    <div class="top-section">
+      <div class="viewport-area">
+        <model-viewer id="aircraft-viewer" src="" alt="3D aircraft" auto-rotate camera-controls touch-action="pan-y" exposure="1.2" shadow-intensity="0.8" camera-orbit="45deg 75deg 4.2m" style="width:100%; height:100%;"></model-viewer>
+        <div class="model-status" id="modelStatus">⏳ INITIALIZING HANGAR</div>
+      </div>
 
-    <div class="interface-container">
-        <header>
-            <h1>Aerospace Frontier: Collection</h1>
-        </header>
-
-        <main class="main-content">
-            <div class="stats-panel">
-                <div class="panel-header">
-                    <span>Selected Plane</span>
-                    <h2 id="plane-title">Artemis Class Biplane</h2>
-                </div>
-                
-                <div class="plane-preview-thumb">
-                    <img id="plane-thumb" src="artemis class biplane-plane.png" alt="Plane Preview" onerror="this.style.display='none'">
-                </div>
-
-                <div class="stats-list">
-                    <div class="stat-row"><span class="stat-label">Manufacturer</span><span class="stat-value" id="val-vendor">AeroClassics</span></div>
-                    <div class="stat-row"><span class="stat-label">Type</span><span class="stat-value" id="val-type">Classic Prop</span></div>
-                    <div class="stat-row"><span class="stat-label">Role</span><span class="stat-value" id="val-role">Sport / Transport</span></div>
-                    <div class="stat-row"><span class="stat-label">Range</span><span class="stat-value" id="val-range">350 miles</span></div>
-                    <div class="stat-row"><span class="stat-label">Cruise Speed</span><span class="stat-value" id="val-speed">95 knots</span></div>
-                    <div class="stat-row"><span class="stat-label">Passenger Cap.</span><span class="stat-value" id="val-cap">2</span></div>
-                    <div class="stat-row cost-row"><span class="stat-label">Cost</span><span class="stat-value" id="val-cost">150,000 Credits</span></div>
-                </div>
-
-                <button class="confirm-btn">Confirm Selection</button>
-            </div>
-        </main>
-
-        <div class="selection-ribbon" id="selector-ribbon"></div>
+      <div class="selected-plane-card" id="selectedPlaneCard">
+        <img class="card-preview-img" id="cardPreviewImg" alt="aircraft preview">
+        <div class="card-details">
+          <div class="plane-title" id="planeNameDisplay">Artemis Class Biplane</div>
+          <div class="metrics-grid">
+            <div class="tech-widget"><div class="widget-icon">⛽</div><div class="widget-label">FUEL</div><div class="widget-value" id="fuelValue">--</div></div>
+            <div class="tech-widget"><div class="widget-icon">📡</div><div class="widget-label">RANGE</div><div class="widget-value" id="distanceValue">--</div></div>
+            <div class="tech-widget"><div class="widget-icon">⚙️</div><div class="widget-label">T/W RATIO</div><div class="widget-value" id="twrValue">--</div></div>
+            <div class="tech-widget"><div class="widget-icon">🌡️</div><div class="widget-label">CEILING</div><div class="widget-value" id="ceilingValue">--</div></div>
+          </div>
+          <div class="spec-grid-tech" id="specGridContainer"></div>
+          <button class="btn-confirm-neon" id="confirmSelectionBtn">🔷 DEPLOY MISSION BRIEF 🔷</button>
+        </div>
+      </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <!-- BOTTOM SECTION: 4 MODELS CENTERED BELOW -->
+    <div class="models-carousel-section">
+      <div class="section-label">⚡ ACTIVE FLEET — SELECT VESSEL ⚡</div>
+      <div class="models-grid-center" id="modelsGridCenter">
+        <!-- 4 model cards will be injected here dynamically -->
+      </div>
+    </div>
+  </div>
+</div>
 
-    <script>
-        const fleetData = [
-            {
-                id: "biplane",
-                name: "Artemis Class Biplane",
-                vendor: "AeroClassics",
-                type: "Classic Prop",
-                role: "Sport / Transport",
-                range: "350 miles",
-                speed: "95 knots",
-                capacity: "2",
-                cost: "150,000 Credits",
-                icon: "artemis class biplane-plane.png",
-                model: "artemis class biplane.glb"
-            },
-            {
-                id: "g6",
-                name: "Artemis G-6 Interceptor",
-                vendor: "Vanguard Aero",
-                type: "Supersonic Jet",
-                role: "Air Defense",
-                range: "1,200 miles",
-                speed: "Mach 1.6",
-                capacity: "1",
-                cost: "1,450,000 Credits",
-                icon: "artemis g-6 interceptor-plane.png",
-                model: "artemis g-6 interceptor.glb"
-            },
-            {
-                id: "f22",
-                name: "F-22 Raptor",
-                vendor: "Lockheed Precision",
-                type: "Stealth Fighter",
-                role: "Tactical Superiority",
-                range: "1,800 miles",
-                speed: "Mach 2.25",
-                capacity: "1",
-                cost: "2,500,000 Credits",
-                icon: "f-22 raptor-plane.png",
-                model: "f-22 raptor.glb"
-            },
-            {
-                id: "nomad",
-                name: "Nomad Skycar",
-                vendor: "Omni-Tech VTOL",
-                type: "Quad-VTOL Car",
-                role: "Personal Transport",
-                range: "450 miles",
-                speed: "210 knots",
-                capacity: "4",
-                cost: "850,000 Credits",
-                icon: "nomad skycar-plane.png",
-                model: "nomad skycar.glb"
-            }
-        ];
+<script>
+  // ========== FLEET DATA: 4 MODELS WITH YOUR EXACT FILE NAMES ==========
+  // PNG icons: artemis class biplane-plane.png, artemis g-6 interceptor-plane.png, f-22 raptor-plane.png, nomad skycar-plane.png
+  // 3D models: artemis class biplane.glb, artemis g-6 interceptor.glb, f-22 raptor.glb, nomad skycar.glb
+  
+  const fleetData = [
+    {
+      id: "artemis_biplane",
+      name: "Artemis Class Biplane",
+      shortName: "Artemis Biplane",
+      manufacturer: "Artemis Aeronautics",
+      type: "Vintage Biplane",
+      role: "Reconnaissance / Acrobatic",
+      speed: "145 mph",
+      passengerCapacity: "2",
+      cost: "$ 127K",
+      modelFile: "artemis class biplane.glb",
+      iconFile: "artemis class biplane-plane.png",
+      fuelRequired: "42 gal",
+      flightDistance: "390 nmi",
+      twr: "0.09:1",
+      ceiling: "14.5k ft"
+    },
+    {
+      id: "artemis_interceptor",
+      name: "Artemis G-6 Interceptor",
+      shortName: "G-6 Interceptor",
+      manufacturer: "Artemis Defense",
+      type: "Interceptor",
+      role: "Air Superiority",
+      speed: "Mach 1.9",
+      passengerCapacity: "1",
+      cost: "$ 42.5M",
+      modelFile: "artemis g-6 interceptor.glb",
+      iconFile: "artemis g-6 interceptor-plane.png",
+      fuelRequired: "185 gal",
+      flightDistance: "1250 nmi",
+      twr: "0.94:1",
+      ceiling: "54k ft"
+    },
+    {
+      id: "f22_raptor",
+      name: "F-22 Raptor",
+      shortName: "F-22 Raptor",
+      manufacturer: "Lockheed Martin",
+      type: "Stealth Air Dominance",
+      role: "5th Gen Fighter",
+      speed: "Mach 2.25",
+      passengerCapacity: "1",
+      cost: "$ 150M",
+      modelFile: "f-22 raptor.glb",
+      iconFile: "f-22 raptor-plane.png",
+      fuelRequired: "280 gal",
+      flightDistance: "1839 nmi",
+      twr: "1.09:1",
+      ceiling: "65k ft"
+    },
+    {
+      id: "nomad_skycar",
+      name: "Nomad Skycar",
+      shortName: "Nomad Skycar",
+      manufacturer: "Nomad Aviation",
+      type: "Personal eVTOL",
+      role: "Urban Air Mobility",
+      speed: "180 mph",
+      passengerCapacity: "4",
+      cost: "$ 289K",
+      modelFile: "nomad skycar.glb",
+      iconFile: "nomad skycar-plane.png",
+      fuelRequired: "28 gal",
+      flightDistance: "250 nmi",
+      twr: "0.21:1",
+      ceiling: "12k ft"
+    }
+  ];
 
-        let activeIndex = 0;
-        const ribbon = document.getElementById('selector-ribbon');
-        let scene, camera, renderer, modelGroup;
-        let loadedMeshes = {}; 
-        let targetX = 0; 
-        const slideSpeed = 0.08;
+  const MODEL_BASE_PATH = "./";
+  const ICON_BASE_PATH = "./";
+  
+  function getModelPath(modelFile) { return MODEL_BASE_PATH + modelFile; }
+  function getIconPath(iconFile) { return ICON_BASE_PATH + iconFile; }
 
-        function setupUI() {
-            fleetData.forEach((plane, index) => {
-                const card = document.createElement('div');
-                card.className = `plane-card ${index === 0 ? 'active' : ''}`;
-                card.setAttribute('data-index', index);
-                card.innerHTML = `
-                    <div class="card-icon">
-                        <img src="${plane.icon}" alt="${plane.name}" onerror="this.parentElement.style.background='rgba(0,0,0,0.05)'">
-                    </div>
-                    <p>${plane.name}</p>
-                `;
-                
-                card.addEventListener('click', () => selectPlane(index));
-                ribbon.appendChild(card);
-            });
-        }
+  // DOM elements
+  let currentSelectedPlaneId = fleetData[0].id;
+  let isTransitioning = false;
+  
+  const modelViewer = document.getElementById('aircraft-viewer');
+  const cardPreviewImg = document.getElementById('cardPreviewImg');
+  const planeNameDisplay = document.getElementById('planeNameDisplay');
+  const specGridContainer = document.getElementById('specGridContainer');
+  const modelsGrid = document.getElementById('modelsGridCenter');
+  const confirmBtn = document.getElementById('confirmSelectionBtn');
+  const modelStatusSpan = document.getElementById('modelStatus');
+  const fuelValueSpan = document.getElementById('fuelValue');
+  const distanceValueSpan = document.getElementById('distanceValue');
+  const twrValueSpan = document.getElementById('twrValue');
+  const ceilingValueSpan = document.getElementById('ceilingValue');
+  const rightPanel = document.getElementById('selectedPlaneCard');
 
-        function selectPlane(index) {
-            if(index === activeIndex) return;
-            
-            document.querySelectorAll('.plane-card').forEach((c, i) => {
-                c.classList.toggle('active', i === index);
-            });
+  function handleImageError(imgElement, fallbackName) {
+    if (!imgElement.getAttribute('data-fallback-set')) {
+      imgElement.setAttribute('data-fallback-set', 'true');
+      imgElement.src = `https://placehold.co/400x300/1a2a3a/00d4ff?text=${encodeURIComponent(fallbackName || 'Aircraft')}`;
+    }
+  }
 
-            activeIndex = index;
-            const data = fleetData[index];
+  function animateModelSlide() {
+    modelViewer.classList.remove('model-transition');
+    void modelViewer.offsetWidth;
+    modelViewer.classList.add('model-transition');
+    setTimeout(() => modelViewer.classList.remove('model-transition'), 500);
+  }
 
-            document.getElementById('plane-title').innerText = data.name;
-            document.getElementById('plane-thumb').src = data.icon;
-            document.getElementById('plane-thumb').style.display = 'block'; 
-            document.getElementById('val-vendor').innerText = data.vendor;
-            document.getElementById('val-type').innerText = data.type;
-            document.getElementById('val-role').innerText = data.role;
-            document.getElementById('val-range').innerText = data.range;
-            document.getElementById('val-speed').innerText = data.speed;
-            document.getElementById('val-cap').innerText = data.capacity;
-            document.getElementById('val-cost').innerText = data.cost;
+  function animateRightPanel() {
+    rightPanel.classList.remove('panel-slide-tech');
+    void rightPanel.offsetWidth;
+    rightPanel.classList.add('panel-slide-tech');
+    setTimeout(() => rightPanel.classList.remove('panel-slide-tech'), 400);
+  }
 
-            trigger3DTransition(data.model);
-        }
+  function renderRightPanel(plane) {
+    planeNameDisplay.textContent = plane.name;
+    const iconPath = getIconPath(plane.iconFile);
+    cardPreviewImg.src = iconPath;
+    cardPreviewImg.onerror = () => handleImageError(cardPreviewImg, plane.name);
+    
+    fuelValueSpan.innerHTML = plane.fuelRequired;
+    distanceValueSpan.innerHTML = plane.flightDistance;
+    twrValueSpan.innerHTML = plane.twr;
+    ceilingValueSpan.innerHTML = plane.ceiling;
+    
+    const specs = [
+      { label: "MANUFACTURER", value: plane.manufacturer },
+      { label: "TYPE", value: plane.type },
+      { label: "ROLE", value: plane.role },
+      { label: "MAX SPEED", value: plane.speed },
+      { label: "PASSENGERS", value: plane.passengerCapacity },
+      { label: "COST", value: plane.cost }
+    ];
+    specGridContainer.innerHTML = specs.map(spec => `
+      <div class="spec-item-tech">
+        <div class="spec-label-tech">${spec.label}</div>
+        <div class="spec-value-tech">${spec.value}</div>
+      </div>
+    `).join('');
+  }
 
-        function init3D() {
-            const container = document.getElementById('canvas-container');
-            
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf0f3f5);
+  function updateModelForPlane(plane) {
+    const modelPath = getModelPath(plane.modelFile);
+    if (modelViewer.src === modelPath && modelViewer.loaded) {
+      animateModelSlide();
+      return;
+    }
+    modelStatusSpan.textContent = `🌀 UPLINK: ${plane.name}`;
+    modelViewer.style.opacity = "0.7";
+    modelViewer.src = modelPath;
+    
+    const onLoad = () => {
+      modelViewer.style.opacity = "1";
+      animateModelSlide();
+      modelStatusSpan.textContent = `✅ ${plane.name} | ACTIVE`;
+      setTimeout(() => {}, 1500);
+      modelViewer.removeEventListener('load', onLoad);
+    };
+    modelViewer.addEventListener('load', onLoad, { once: true });
+    modelViewer.addEventListener('error', () => {
+      modelStatusSpan.textContent = `⚠️ MODEL OFFLINE: ${plane.modelFile}`;
+      modelViewer.style.opacity = "1";
+    });
+  }
 
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-            camera.position.set(0, 1.8, 6.5);
-            camera.lookAt(0, 0, 0);
+  // Set active plane with smooth slide effect
+  function setActivePlane(planeId) {
+    if (isTransitioning) return;
+    const plane = fleetData.find(p => p.id === planeId);
+    if (!plane) return;
+    
+    isTransitioning = true;
+    currentSelectedPlaneId = planeId;
+    renderRightPanel(plane);
+    updateModelForPlane(plane);
+    updateActiveCard(planeId);
+    animateRightPanel();
+    
+    const activeCard = document.querySelector(`.model-card-center[data-plane-id="${planeId}"]`);
+    if (activeCard) {
+      activeCard.classList.add('slide-in');
+      setTimeout(() => activeCard.classList.remove('slide-in'), 450);
+      activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+    setTimeout(() => { isTransitioning = false; }, 550);
+  }
 
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.shadowMap.enabled = true;
-            renderer.outputEncoding = THREE.sRGBEncoding; 
-            container.appendChild(renderer.domElement);
+  function updateActiveCard(activeId) {
+    document.querySelectorAll('.model-card-center').forEach(card => {
+      if (card.getAttribute('data-plane-id') === activeId) {
+        card.classList.add('active-card');
+      } else {
+        card.classList.remove('active-card');
+      }
+    });
+  }
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-            scene.add(ambientLight);
+  // Build the 4 centered model cards
+  function buildModelsGrid() {
+    modelsGrid.innerHTML = '';
+    fleetData.forEach((plane, idx) => {
+      const card = document.createElement('div');
+      card.className = 'model-card-center';
+      if (plane.id === currentSelectedPlaneId) card.classList.add('active-card');
+      card.setAttribute('data-plane-id', plane.id);
+      
+      const img = document.createElement('img');
+      img.className = 'model-icon-img';
+      img.src = getIconPath(plane.iconFile);
+      img.alt = plane.name;
+      img.loading = 'eager';
+      img.onerror = () => handleImageError(img, plane.name);
+      
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'model-name';
+      nameDiv.textContent = plane.shortName;
+      
+      const badge = document.createElement('div');
+      badge.className = 'model-badge';
+      badge.textContent = plane.type;
+      
+      card.appendChild(img);
+      card.appendChild(nameDiv);
+      card.appendChild(badge);
+      
+      card.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setActivePlane(plane.id);
+      });
+      
+      modelsGrid.appendChild(card);
+      
+      // Entrance animation
+      setTimeout(() => {
+        card.classList.add('slide-in');
+        setTimeout(() => card.classList.remove('slide-in'), 500);
+      }, idx * 80);
+    });
+  }
 
-            const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
-            dirLight1.position.set(5, 10, 7);
-            scene.add(dirLight1);
+  // Confirm handler
+  confirmBtn.addEventListener('click', () => {
+    const plane = fleetData.find(p => p.id === currentSelectedPlaneId);
+    if (plane) {
+      alert(`🚀 NEXUS COMMAND\n\n✈️ ${plane.name}\n⛽ FUEL: ${plane.fuelRequired}\n📡 RANGE: ${plane.flightDistance}\n⚡ T/W: ${plane.twr}\n🌡️ CEILING: ${plane.ceiling}\n\n📁 3D Model: ${plane.modelFile}\n🖼️ Icon: ${plane.iconFile}\n\nMISSION DEPLOYED.`);
+    }
+  });
 
-            const dirLight2 = new THREE.DirectionalLight(0xaed6f1, 0.4);
-            dirLight2.position.set(-5, 2, -5);
-            scene.add(dirLight2);
-
-            modelGroup = new THREE.Group();
-            scene.add(modelGroup);
-
-            preloadGLBModels();
-
-            window.addEventListener('resize', onWindowResize);
-            animate();
-        }
-
-        function preloadGLBModels() {
-            const loader = new THREE.GLTFLoader();
-
-            fleetData.forEach((plane, idx) => {
-                loader.load(
-                    plane.model,
-                    (gltf) => {
-                        const modelScene = gltf.scene;
-
-                        const box = new THREE.Box3().setFromObject(modelScene);
-                        const center = box.getCenter(new THREE.Vector3());
-                        modelScene.position.x += (modelScene.position.x - center.x);
-                        modelScene.position.y += (modelScene.position.y - center.y);
-                        modelScene.position.z += (modelScene.position.z - center.z);
-
-                        const size = box.getSize(new THREE.Vector3());
-                        const maxDim = Math.max(size.x, size.y, size.z);
-                        const targetScale = 2.8 / maxDim; 
-                        modelScene.scale.set(targetScale, targetScale, targetScale);
-
-                        loadedMeshes[plane.model] = modelScene;
-
-                        if (idx === 0) {
-                            modelGroup.add(modelScene);
-                        }
-                    },
-                    undefined,
-                    (error) => {
-                        console.error(`Error loading file ${plane.model}:`, error);
-                    }
-                );
-            });
-        }
-
-        function trigger3DTransition(modelKey) {
-            modelGroup.position.x = 4.5; 
-            
-            while(modelGroup.children.length > 0){ 
-                modelGroup.remove(modelGroup.children[0]); 
-            }
-            
-            if(loadedMeshes[modelKey]) {
-                modelGroup.add(loadedMeshes[modelKey]);
-            }
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-
-            modelGroup.rotation.y += 0.006;
-
-            if (Math.abs(modelGroup.position.x - targetX) > 0.001) {
-                modelGroup.position.x += (targetX - modelGroup.position.x) * slideSpeed;
-            } else {
-                modelGroup.position.x = targetX;
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        window.onload = () => {
-            setupUI();
-            init3D();
-        };
-    </script>
+  // Initialize
+  function init() {
+    buildModelsGrid();
+    
+    if (fleetData.length > 0) {
+      const defaultPlane = fleetData[0];
+      currentSelectedPlaneId = defaultPlane.id;
+      renderRightPanel(defaultPlane);
+      updateModelForPlane(defaultPlane);
+      updateActiveCard(defaultPlane.id);
+      setTimeout(() => {
+        const firstCard = document.querySelector(`.model-card-center[data-plane-id="${defaultPlane.id}"]`);
+        if (firstCard) firstCard.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        animateRightPanel();
+      }, 200);
+    }
+  }
+  
+  init();
+</script>
 </body>
 </html>

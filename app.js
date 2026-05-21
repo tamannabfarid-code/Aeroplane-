@@ -11,7 +11,7 @@ const fleetData = [
         capacity: "2",
         cost: "150,000 Credits",
         icon: "artemis class biplane-plane.png",
-        color: 0xd4ac0d
+        model: "artemis class biplane.glb" // Exact .glb filename assignment
     },
     {
         id: "g6",
@@ -24,7 +24,7 @@ const fleetData = [
         capacity: "1",
         cost: "1,450,000 Credits",
         icon: "artemis g-6 interceptor-plane.png",
-        color: 0x7b7d7d
+        model: "artemis g-6 interceptor.glb"
     },
     {
         id: "f22",
@@ -37,7 +37,7 @@ const fleetData = [
         capacity: "1",
         cost: "2,500,000 Credits",
         icon: "f-22 raptor-plane.png",
-        color: 0x34495e
+        model: "f-22 raptor.glb"
     },
     {
         id: "nomad",
@@ -50,12 +50,18 @@ const fleetData = [
         capacity: "4",
         cost: "850,000 Credits",
         icon: "nomad skycar-plane.png",
-        color: 0x2e4053
+        model: "nomad skycar.glb"
     }
 ];
 
 let activeIndex = 0;
 const ribbon = document.getElementById('selector-ribbon');
+
+// --- Three.js 3D Viewport Global Engine Variables ---
+let scene, camera, renderer, modelGroup;
+let loadedMeshes = {}; // Cache map container to keep loaded glb assets responsive
+let targetX = 0; 
+const slideSpeed = 0.08; 
 
 // --- UI Framework Setup ---
 function setupUI() {
@@ -78,7 +84,7 @@ function setupUI() {
 function selectPlane(index) {
     if(index === activeIndex) return;
     
-    // Toggle Active Border Highlights on Ribbon Selector
+    // Toggle active state ribbon styling highlights
     document.querySelectorAll('.plane-card').forEach((c, i) => {
         c.classList.toggle('active', i === index);
     });
@@ -86,7 +92,7 @@ function selectPlane(index) {
     activeIndex = index;
     const data = fleetData[index];
 
-    // Inject matching specs into the right-hand panel
+    // Inject matching specs into the right panel UI layout
     document.getElementById('plane-title').innerText = data.name;
     document.getElementById('plane-thumb').src = data.icon;
     document.getElementById('plane-thumb').style.display = 'block'; 
@@ -98,34 +104,30 @@ function selectPlane(index) {
     document.getElementById('val-cap').innerText = data.capacity;
     document.getElementById('val-cost').innerText = data.cost;
 
-    // Trigger Slide transition 
-    trigger3DTransition(index);
+    // Trigger the slide transition routine
+    trigger3DTransition(data.model);
 }
 
-// --- Three.js 3D Viewport Engine ---
-let scene, camera, renderer, modelGroup;
-let meshes = [];
-let targetX = 0; 
-const slideSpeed = 0.08; // Determines smoothness of slide in animation
-
+// --- Three.js Initialization Engine ---
 function init3D() {
     const container = document.getElementById('canvas-container');
     
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f3f5); // Studio grey background finish
+    scene.background = new THREE.Color(0xf0f3f5); // Soft showroom clean studio gray
 
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 2, 7);
+    camera.position.set(0, 1.8, 6.5);
     camera.lookAt(0, 0, 0);
 
-    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
+    renderer.outputEncoding = THREE.sRGBEncoding; // Ensures accurate model colors
     container.appendChild(renderer.domElement);
 
-    // Balanced Lighting Setup
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Dynamic Ambient/Studio Lights Setup
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     scene.add(ambientLight);
 
     const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -136,88 +138,79 @@ function init3D() {
     dirLight2.position.set(-5, 2, -5);
     scene.add(dirLight2);
 
+    // Container Group targeting transitions
     modelGroup = new THREE.Group();
     scene.add(modelGroup);
 
-    buildProceduralPlaceholders();
+    // Start asynchronously loading files from data layout structures 
+    preloadGLBModels();
 
     window.addEventListener('resize', onWindowResize);
     animate();
 }
 
-// Builds fallback geometry block shapes while real assets finish local config setups
-function buildProceduralPlaceholders() {
-    // 1. Biplane Assembly
-    const biplaneGroup = new THREE.Group();
-    const bodyGeo = new THREE.BoxGeometry(0.6, 0.5, 2);
-    const wingGeo = new THREE.BoxGeometry(3.2, 0.05, 0.6);
-    const matYellow = new THREE.MeshStandardMaterial({ color: fleetData[0].color, roughness: 0.4 });
-    const body = new THREE.Mesh(bodyGeo, matYellow);
-    const topWing = new THREE.Mesh(wingGeo, matYellow);
-    topWing.position.set(0, 0.5, 0.2);
-    const bottomWing = new THREE.Mesh(wingGeo, matYellow);
-    bottomWing.position.set(0, -0.2, 0.2);
-    biplaneGroup.add(body, topWing, bottomWing);
-    meshes.push(biplaneGroup);
+// Asynchronously parses files from your repo folder map pipeline using GLTFLoader
+function preloadGLBModels() {
+    const loader = new THREE.GLTFLoader();
 
-    // 2. Artemis G-6
-    const g6Group = new THREE.Group();
-    const jetMat = new THREE.MeshStandardMaterial({ color: fleetData[1].color, roughness: 0.3, metalness: 0.2 });
-    const fuselage = new THREE.Mesh(new THREE.ConeGeometry(0.4, 2.5, 4), jetMat);
-    fuselage.rotation.x = Math.PI / 2;
-    const wings = new THREE.Mesh(new THREE.ConeGeometry(1.5, 1.2, 3), jetMat);
-    wings.rotation.x = Math.PI / 2;
-    wings.position.set(0, 0, -0.4);
-    g6Group.add(fuselage, wings);
-    meshes.push(g6Group);
+    fleetData.forEach((plane, idx) => {
+        loader.load(
+            plane.model,
+            (gltf) => {
+                const modelScene = gltf.scene;
 
-    // 3. F-22 Raptor
-    const f22Group = new THREE.Group();
-    const stealthMat = new THREE.MeshStandardMaterial({ color: fleetData[2].color, roughness: 0.5, metalness: 0.5 });
-    const mainBody = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.2, 2.4), stealthMat);
-    const mainWings = new THREE.Mesh(new THREE.ConeGeometry(1.8, 1.5, 4), stealthMat);
-    mainWings.rotation.x = Math.PI / 2;
-    mainWings.scale.y = 0.1;
-    f22Group.add(mainBody, mainWings);
-    meshes.push(f22Group);
+                // Center asset geometry roots automatically
+                const box = new THREE.Box3().setFromObject(modelScene);
+                const center = box.getCenter(new THREE.Vector3());
+                modelScene.position.x += (modelScene.position.x - center.x);
+                modelScene.position.y += (modelScene.position.y - center.y);
+                modelScene.position.z += (modelScene.position.z - center.z);
 
-    // 4. Nomad Skycar VTOL
-    const nomadGroup = new THREE.Group();
-    const quadMat = new THREE.MeshStandardMaterial({ color: fleetData[3].color, metalness: 0.8, roughness: 0.2 });
-    const pod = new THREE.Mesh(new THREE.SphereGeometry(0.6, 16, 16), quadMat);
-    pod.scale.set(1, 0.7, 1.6);
-    const rotorGeo = new THREE.CylinderGeometry(0.3, 0.3, 0.15, 8);
-    const positions = [[0.8,0,0.6], [-0.8,0,0.6], [0.8,0,-0.6], [-0.8,0,-0.6]];
-    positions.forEach(pos => {
-        const rotor = new THREE.Mesh(rotorGeo, quadMat);
-        rotor.position.set(...pos);
-        nomadGroup.add(rotor);
+                // Normalizes varying model scale properties to visual bounds
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const targetScale = 2.8 / maxDim; // Fits object nicely into context frame box
+                modelScene.scale.set(targetScale, targetScale, targetScale);
+
+                // Save model context frame target configuration to RAM cache map structure
+                loadedMeshes[plane.model] = modelScene;
+
+                // Instantly attach first plane object initialization to main render workspace group
+                if (idx === 0) {
+                    modelGroup.add(modelScene);
+                }
+            },
+            (xhr) => {
+                console.log(`${plane.name}: ${(xhr.loaded / xhr.total * 100).toFixed(0)}% loaded`);
+            },
+            (error) => {
+                console.error(`Error loading model file ${plane.model}:`, error);
+            }
+        );
     });
-    nomadGroup.add(pod);
-    meshes.push(nomadGroup);
-
-    modelGroup.add(meshes[0]);
 }
 
-function trigger3DTransition(selectedIndex) {
-    modelGroup.position.x = 4.5; // Snap new model instantly far off-frame right
+function trigger3DTransition(modelKey) {
+    modelGroup.position.x = 4.5; // Snap presentation group far off-screen right bound element
     
+    // Wipe active group objects immediately
     while(modelGroup.children.length > 0){ 
         modelGroup.remove(modelGroup.children[0]); 
     }
     
-    if(meshes[selectedIndex]) {
-        modelGroup.add(meshes[selectedIndex]);
+    // Inject selected preloaded data mesh safely
+    if(loadedMeshes[modelKey]) {
+        modelGroup.add(loadedMeshes[modelKey]);
     }
 }
 
 function animate() {
     requestAnimationFrame(animate);
 
-    // Continuous smooth object Y axis rotation
-    modelGroup.rotation.y += 0.008;
+    // Continuous smooth turntable Y-axis rotation loop execution
+    modelGroup.rotation.y += 0.006;
 
-    // Linear Interpolation sliding math
+    // Linear interpolation tracking calculations (Slide-into-frame motion architecture)
     if (Math.abs(modelGroup.position.x - targetX) > 0.001) {
         modelGroup.position.x += (targetX - modelGroup.position.x) * slideSpeed;
     } else {
